@@ -1,0 +1,244 @@
+import csv
+
+def carregar_usuarios():
+    usuarios = []
+    try:
+        with open('usuarios.csv', newline='', encoding='utf-8') as arquivo:
+            leitor = csv.DictReader(arquivo)
+            for linha in leitor:
+                usuarios.append(linha)
+    except FileNotFoundError:
+        print("Arquivo 'usuarios.csv' não encontrado.")
+    return usuarios
+
+def salvar_usuarios(usuarios):
+    with open('usuarios.csv', 'w', newline='', encoding='utf-8') as arquivo:
+        campos = ['nome', 'senha', 'cargo']
+        escritor = csv.DictWriter(arquivo, fieldnames=campos)
+        escritor.writeheader()
+        for u in usuarios:
+            escritor.writerow(u)
+
+def cadastrar_usuario(usuarios):
+    nome = input("Nome: ")
+    senha = input("Senha: ")
+    cargo = input("Cargo (gerente, funcionario, etc.): ")
+    usuarios.append({"nome": nome, "senha": senha, "cargo": cargo})
+    salvar_usuarios(usuarios)
+    print("✅ Usuário cadastrado!")
+
+def login(usuarios):
+    nome = input("Nome de usuário: ")
+    senha = input("Senha: ")
+    for u in usuarios:
+        if u['nome'] == nome and u['senha'] == senha:
+            print(f"✅ Login bem-sucedido como {u['cargo']}")
+            return u
+    print("❌ Login inválido.")
+    return None
+
+def listar_usuarios(usuarios):
+    print("\n📋 Lista de Usuários:")
+    for i, u in enumerate(usuarios):
+        print(f"{i+1}. Nome: {u['nome']} | Cargo: {u['cargo']}")
+
+def atualizar_usuario(usuarios):
+    listar_usuarios(usuarios)
+    nome = input("\nDigite o nome do usuário que deseja atualizar: ")
+    for u in usuarios:
+        if u['nome'] == nome:
+            u['senha'] = input("Nova senha: ")
+            u['cargo'] = input("Novo cargo: ")
+            salvar_usuarios(usuarios)
+            print("✅ Usuário atualizado com sucesso!")
+            return
+    print("❌ Usuário não encontrado.")
+
+def deletar_usuario(usuarios):
+    listar_usuarios(usuarios)
+    nome = input("\nDigite o nome do usuário que deseja deletar: ")
+    for u in usuarios:
+        if u['nome'] == nome:
+            usuarios.remove(u)
+            salvar_usuarios(usuarios)
+            print("🗑️ Usuário deletado com sucesso!")
+            return
+    print("❌ Usuário não encontrado.")
+
+def menu_gerenciar_usuarios(usuarios):
+    while True:
+        print("\n👥 Gerenciamento de Usuários")
+        print("1. Listar usuários")
+        print("2. Atualizar usuário")
+        print("3. Deletar usuário")
+        print("0. Voltar")
+        opcao = input("Escolha uma opção: ")
+        if opcao == '1':
+            listar_usuarios(usuarios)
+        elif opcao == '2':
+            atualizar_usuario(usuarios)
+        elif opcao == '3':
+            deletar_usuario(usuarios)
+        elif opcao == '0':
+            break
+        else:
+            print("Opção inválida.")
+
+def carregar_produtos():
+    produtos = []
+    try:
+        with open('produtos.csv', newline='', encoding='utf-8') as arquivo:
+            leitor = csv.DictReader(arquivo)
+            for linha in leitor:
+                linha['preco'] = float(linha['preco'])
+                linha['quantidade'] = int(linha['quantidade'])
+                produtos.append(linha)
+    except FileNotFoundError:
+        print("Arquivo 'produtos.csv' não encontrado.")
+    return produtos
+
+def salvar_produtos(produtos):
+    with open('produtos.csv', 'w', newline='', encoding='utf-8') as arquivo:
+        campos = ['codigo', 'nome', 'preco', 'quantidade']
+        escritor = csv.DictWriter(arquivo, fieldnames=campos)
+        escritor.writeheader()
+        for p in produtos:
+            escritor.writerow(p)
+
+def listar_produtos(produtos):
+    print("\n📦 Produtos cadastrados:")
+    for p in produtos:
+        print(f"Código: {p['codigo']} | Nome: {p['nome']} | Preço: R${p['preco']:.2f} | Quantidade: {p['quantidade']}")
+
+def criar_produto(produtos):
+    codigo = input("Código do produto: ")
+    nome = input("Nome: ")
+    preco = float(input("Preço: "))
+    quantidade = int(input("Quantidade: "))
+    produtos.append({'codigo': codigo, 'nome': nome, 'preco': preco, 'quantidade': quantidade})
+    salvar_produtos(produtos)
+    print("✅ Produto cadastrado!")
+
+def atualizar_produto(produtos):
+    codigo = input("Digite o código do produto a atualizar: ")
+    for p in produtos:
+        if p['codigo'] == codigo:
+            p['nome'] = input("Novo nome: ")
+            p['preco'] = float(input("Novo preço: "))
+            p['quantidade'] = int(input("Nova quantidade: "))
+            salvar_produtos(produtos)
+            print("✅ Produto atualizado!")
+            return
+    print("❌ Produto não encontrado.")
+
+def deletar_produto(produtos):
+    codigo = input("Digite o código do produto a deletar: ")
+    for p in produtos:
+        if p['codigo'] == codigo:
+            produtos.remove(p)
+            salvar_produtos(produtos)
+            print("🗑️ Produto deletado!")
+            return
+    print("❌ Produto não encontrado.")
+
+def buscar_produto(produtos):
+    nome = input("Digite o nome do produto: ").lower()
+    encontrados = [p for p in produtos if nome in p['nome'].lower()]
+    if encontrados:
+        for p in encontrados:
+            print(f"✅ Código: {p['codigo']} | Nome: {p['nome']} | Preço: R${p['preco']} | Quantidade: {p['quantidade']}")
+    else:
+        print("🔍 Nenhum produto encontrado.")
+
+def ordenar_por_nome(produtos):
+    ordenados = sorted(produtos, key=lambda x: x['nome'].lower())
+    listar_produtos(ordenados)
+
+def ordenar_por_preco(produtos):
+    ordenados = sorted(produtos, key=lambda x: x['preco'])
+    listar_produtos(ordenados)
+
+def menu_produtos(cargo):
+    produtos = carregar_produtos()
+    while True:
+        print("\n📦 Menu de Produtos")
+        print("1. Listar produtos")
+        print("2. Buscar produto por nome")
+        print("3. Ordenar por nome")
+        print("4. Ordenar por preço")
+        if cargo in ['gerente', 'funcionario']:
+            print("5. Cadastrar novo produto")
+            print("6. Atualizar produto")
+            print("7. Deletar produto")
+        print("0. Voltar")
+
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == '1':
+            listar_produtos(produtos)
+        elif opcao == '2':
+            buscar_produto(produtos)
+        elif opcao == '3':
+            ordenar_por_nome(produtos)
+        elif opcao == '4':
+            ordenar_por_preco(produtos)
+        elif opcao == '5' and cargo in ['gerente', 'funcionario']:
+            criar_produto(produtos)
+        elif opcao == '6' and cargo in ['gerente', 'funcionario']:
+            atualizar_produto(produtos)
+        elif opcao == '7' and cargo in ['gerente', 'funcionario']:
+            deletar_produto(produtos)
+        elif opcao == '0':
+            break
+        else:
+            print("Opção inválida ou sem permissão.")
+
+
+
+def menu_usuario(usuario):
+    cargo = usuario['cargo']
+    while True:
+        print("\n📋 Menu Interno")
+        print("1. Acessar produtos/serviços")
+        if cargo == 'gerente':
+            print("2. Gerenciar usuários")
+        print("0. Logout")
+
+        opcao = input("Digite o número da opção desejada: ")
+
+        if opcao == '0':
+            print("Saindo do sistema...")
+            break
+        elif opcao == '1':
+            menu_produtos(cargo)
+        elif opcao == '2' and cargo == 'gerente':
+            usuarios = carregar_usuarios()
+            menu_gerenciar_usuarios(usuarios)
+        else:
+            print("Opção inválida ou sem permissão.")
+
+def menu_principal():
+    usuarios = carregar_usuarios()
+    while True:
+        print("\n==== Sistema de Gerenciamento ====")
+        print("1. Login")
+        print("2. Cadastrar novo usuário")
+        print("0. Sair")
+
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == '1':
+            usuario = login(usuarios)
+            if usuario:
+                menu_usuario(usuario)
+        elif opcao == '2':
+            cadastrar_usuario(usuarios)
+        elif opcao == '0':
+            print("Encerrando...")
+            break
+        else:
+            print("Opção inválida.")
+
+
+
+menu_principal()
